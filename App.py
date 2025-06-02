@@ -1,7 +1,5 @@
-
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 import os
 
 # Título
@@ -17,26 +15,23 @@ df_crecimiento = pd.read_excel(os.path.join(DATA_DIR, "Crecimiento.xlsx"), sheet
 df_participacion = pd.read_excel(os.path.join(DATA_DIR, "participación.xlsx"), sheet_name="participación")
 df_proyecciones = pd.read_excel(os.path.join(DATA_DIR, "proyecciones.xlsx"), sheet_name="Hoja1")
 
-# --- Visualización de Proyecciones ---
+# --- Proyecciones de ventas ---
 st.subheader("Proyecciones de Ventas")
-fig_proy = px.line(df_proyecciones, x=df_proyecciones.columns[0], y=df_proyecciones.columns[1:], markers=True)
-st.plotly_chart(fig_proy)
+st.line_chart(df_proyecciones.set_index(df_proyecciones.columns[0]))
 
-# --- Visualización de Participación ---
+# --- Participación de mercado ---
 st.subheader("Participación de Mercado")
-fig_part = px.bar(df_participacion, x=df_participacion.columns[0], y=df_participacion.columns[1:], barmode="group")
-st.plotly_chart(fig_part)
+st.bar_chart(df_participacion.set_index(df_participacion.columns[0]))
 
-# --- Visualización de Crecimiento ---
+# --- Crecimiento anual ---
 st.subheader("Crecimiento Anual")
-fig_crec = px.line(df_crecimiento, x=df_crecimiento.columns[0], y=df_crecimiento.columns[1:], markers=True)
-st.plotly_chart(fig_crec)
+st.line_chart(df_crecimiento.set_index(df_crecimiento.columns[0]))
 
-# --- Visualización de Competencia ---
+# --- Competencia ---
 st.subheader("Resumen de Competencia")
 st.dataframe(df_competencia)
 
-# --- Información cualitativa de cadenas ---
+# --- Cadenas comerciales ---
 st.subheader("Información Cualitativa de Cadenas")
 st.dataframe(df_cadenas.iloc[1:, [1, 2, 3]].rename(columns={
     df_cadenas.columns[1]: "Cadena Comercial",
