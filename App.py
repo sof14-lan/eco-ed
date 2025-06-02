@@ -2,39 +2,80 @@ import streamlit as st
 import pandas as pd
 import os
 
-# Título
-st.title("Dashboard de Cadenas Comerciales")
+st.title("Dashboard Dinámico - Análisis Comercial")
 
-# Ruta de los datos
+# Carpeta donde se almacenan los archivos
 DATA_DIR = "data"
 
-# Cargar archivos
-df_cadenas = pd.read_excel(os.path.join(DATA_DIR, "cadenas comerciales.xlsx"), sheet_name="Hoja1")
-df_competencia = pd.read_excel(os.path.join(DATA_DIR, "Competencia.xlsx"), sheet_name="Competencia ")
-df_crecimiento = pd.read_excel(os.path.join(DATA_DIR, "Crecimiento.xlsx"), sheet_name="Crecimiento")
-df_participacion = pd.read_excel(os.path.join(DATA_DIR, "participación.xlsx"), sheet_name="participación")
-df_proyecciones = pd.read_excel(os.path.join(DATA_DIR, "proyecciones.xlsx"), sheet_name="Hoja1")
+# Función para cargar archivos Excel con verificación
+def cargar_excel(nombre_archivo, hoja):
+    ruta = os.path.join(DATA_DIR, nombre_archivo)
+    if os.path.exists(ruta):
+        return pd.read_excel(ruta, sheet_name=hoja)
+    else:
+        st.error(f"❌ No se encontró el archivo {nombre_archivo} en la carpeta 'data/'")
+        return pd.DataFrame()
 
-# --- Proyecciones de ventas ---
-st.subheader("Proyecciones de Ventas")
-st.line_chart(df_proyecciones.set_index(df_proyecciones.columns[0]))
+# ===============================
+# Cargar los datos
+# ===============================
+df_competencia = cargar_excel("Competencia.xlsx", "Competencia ")
+df_cadenas = cargar_excel("cadenas comerciales.xlsx", "Hoja1")
+df_crecimiento = cargar_excel("Crecimiento.xlsx", "Crecimiento")
+df_proyecciones = cargar_excel("proyecciones.xlsx", "Hoja1")
+df_participacion = cargar_excel("participación.xlsx", "participación")
 
-# --- Participación de mercado ---
-st.subheader("Participación de Mercado")
-st.bar_chart(df_participacion.set_index(df_participacion.columns[0]))
+# ===============================
+# Sección 1: Competencia
+# ===============================
+if not df_competencia.empty:
+    st.subheader("1. Competencia")
+    columnas_relevantes = ["Empresa", "Año Fundación", "Ubicación", "Producto Principal"]
+    if all(col in df_competencia.columns for col in columnas_relevantes):
+        st.dataframe(df_competencia[columnas_relevantes])
+    else:
+        st.warning("⚠ Las columnas esperadas no están disponibles.")
+        st.dataframe(df_competencia)
 
-# --- Crecimiento anual ---
-st.subheader("Crecimiento Anual")
-st.line_chart(df_crecimiento.set_index(df_crecimiento.columns[0]))
+# ===============================
+# Sección 2: Cadenas Comerciales
+# ===============================
+if not df_cadenas.empty:
+    st.subheader("2. Cadenas Comerciales")
+    if "Cadena Comercial" in df_cadenas.columns:
+        st.dataframe(df_cadenas[["Cadena Comercial"]])
+    else:
+        st.dataframe(df_cadenas)
 
-# --- Competencia ---
-st.subheader("Resumen de Competencia")
-st.dataframe(df_competencia)
+# ===============================
+# Sección 3: Crecimiento
+# ===============================
+if not df_crecimiento.empty:
+    st.subheader("3. Crecimiento por Periodo")
+    if {"Periodo", "Tipo de Crecimiento", "Porcentaje"} <= set(df_crecimiento.columns):
+        st.line_chart(df_crecimiento.set_index("Periodo")["Porcentaje"])
+        st.dataframe(df_crecimiento[["Periodo", "Tipo de Crecimiento", "Porcentaje"]])
+    else:
+        st.dataframe(df_crecimiento)
 
-# --- Cadenas comerciales ---
-st.subheader("Información Cualitativa de Cadenas")
-st.dataframe(df_cadenas.iloc[1:, [1, 2, 3]].rename(columns={
-    df_cadenas.columns[1]: "Cadena Comercial",
-    df_cadenas.columns[2]: "Descripción",
-    df_cadenas.columns[3]: "Ventajas Clave"
-}))
+# ===============================
+# Sección 4: Proyecciones
+# ===============================
+if not df_proyecciones.empty:
+    st.subheader("4. Proyecciones en Millones de USD")
+    if {"Año", "Valor (Millones USD)", "Mercado"} <= set(df_proyecciones.columns):
+        st.bar_chart(df_proyecciones.set_index("Año")["Valor (Millones USD)"])
+        st.dataframe(df_proyecciones[["Año", "Valor (Millones USD)", "Mercado"]])
+    else:
+        st.dataframe(df_proyecciones)
+
+# ===============================
+# Sección 5: Participación
+# ===============================
+if not df_participacion.empty:
+    st.subheader("5. Participación de Mercado")
+    if {"Año", "Participación (%)", "Región"} <= set(df_participacion.columns):
+        st.line_chart(df_participacion.set_index("Año")["Participación (%)"])
+        st.dataframe(df_participacion[["Año", "Participación (%)", "Región"]])
+    else:
+        st.dataframe(df_participacion)
